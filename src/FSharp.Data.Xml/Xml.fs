@@ -2,6 +2,7 @@
 
 open System.Collections.Generic
 open System.IO
+open System.Linq
 open System.Xml
 
 module Xml = 
@@ -35,3 +36,17 @@ module Xml =
         match nsMgrs.TryGetValue document.NameTable with
         | true, nsmgr -> nsmgr
         | _ -> newNsMgr document.NameTable
+
+    /// Gets the root element of the specified XML document
+    let root (document : XmlDocument) =
+        Argument.validateNotNull document "document"
+        let root = Seq.cast<XmlNode>(document.ChildNodes) |> Seq.find (fun n -> n :? XmlElement)
+        root :?> XmlElement
+
+    /// Tries to get the root element of the specified XML document
+    let tryRoot (document : XmlDocument) =
+        if document <> null then
+            match Seq.cast<XmlNode>(document.ChildNodes) |> Seq.tryFind (fun n -> n :? XmlElement) with
+            | Some root -> Some (root :?> XmlElement)
+            | None -> None
+        else None

@@ -55,3 +55,35 @@ type XmlTests() =
         let nsmgr1 = Xml.nsmgr document
         let nsmgr2 = Xml.nsmgr document
         Assert.Same(nsmgr1, nsmgr2)
+
+    [<Fact>]
+    let ``root should thrown exception when document is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.root null |> ignore)
+        Assert.Equal("document", ex.ParamName)
+
+    [<Fact>]
+    let ``root should return root node of document``() =
+        let xml = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>"
+        let document = Xml.ofString xml
+        let root = Xml.root document
+        Assert.Equal(XmlNodeType.Element, root.NodeType)
+        Assert.Equal("<root><foo>a</foo><bar>b</bar><baz>c</baz></root>", root.OuterXml)
+
+    [<Fact>]
+    let ``tryRoot should return None when document is null``() =
+        let result = Xml.tryRoot null
+        Assert.Equal(Option<XmlElement>.None, result)
+
+    [<Fact>]
+    let ``tryRoot should return root node of document``() =
+        let xml = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>"
+        let document = Xml.ofString xml
+        let root = Xml.tryRoot document
+        Assert.Equal(XmlNodeType.Element, root.Value.NodeType)
+        Assert.Equal("<root><foo>a</foo><bar>b</bar><baz>c</baz></root>", root.Value.OuterXml)
+
+    [<Fact>]
+    let ``tryRoot should return None when document does not have a root node``() =
+        let document = XmlDocument()
+        let result = Xml.tryRoot document
+        Assert.Equal(Option<XmlElement>.None, result)
