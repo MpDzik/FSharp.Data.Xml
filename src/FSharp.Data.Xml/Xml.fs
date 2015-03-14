@@ -11,3 +11,10 @@ module Xml =
         let document = XmlDocument()
         document.Load(stream)
         document
+
+    /// Loads an XML document from a string
+    let ofString (xml : string) =
+        Argument.validateNotNull xml "xml"
+        let document = XmlDocument()
+        document.LoadXml(xml)
+        document

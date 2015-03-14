@@ -25,3 +25,14 @@ type XmlTests() =
         stream.Position <- 0L
         let document = Xml.ofStream stream
         Assert.Equal(xml, document.OuterXml)
+
+    [<Fact>]
+    let ``ofString should throw exception when string is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.ofString null |> ignore)
+        Assert.Equal("xml", ex.ParamName)
+
+    [<Fact>]
+    let ``ofString should load XML document from string``() =
+        let xml = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>"
+        let document = Xml.ofString xml
+        Assert.Equal(xml, document.OuterXml)
