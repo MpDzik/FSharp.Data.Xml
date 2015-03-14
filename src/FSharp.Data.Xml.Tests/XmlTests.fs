@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Xml
 open FSharp.Data.Xml
 open Xunit
 
@@ -36,3 +37,21 @@ type XmlTests() =
         let xml = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>"
         let document = Xml.ofString xml
         Assert.Equal(xml, document.OuterXml)
+
+    [<Fact>]
+    let ``nsmgr should throw exception when document is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.nsmgr null |> ignore)
+        Assert.Equal("document", ex.ParamName)
+
+    [<Fact>]
+    let ``nsmgr should return namespace manager for document``() =
+        let document = XmlDocument()
+        let nsmgr = Xml.nsmgr document
+        Assert.Equal(document.NameTable, nsmgr.NameTable)
+
+    [<Fact>]
+    let ``nsmgr should cache created namespcae managers``() =
+        let document = XmlDocument()
+        let nsmgr1 = Xml.nsmgr document
+        let nsmgr2 = Xml.nsmgr document
+        Assert.Same(nsmgr1, nsmgr2)
