@@ -2,7 +2,6 @@
 
 open System.Collections.Generic
 open System.IO
-open System.Linq
 open System.Xml
 
 module Xml = 
@@ -49,4 +48,37 @@ module Xml =
             match Seq.cast<XmlNode>(document.ChildNodes) |> Seq.tryFind (fun n -> n :? XmlElement) with
             | Some root -> Some (root :?> XmlElement)
             | None -> None
+        else None
+
+    /// Performs an XPath query on an XML node and returns the result nodes
+    let query xpath (node : XmlNode) =
+        Argument.validateNotNull xpath "xpath"
+        Argument.validateNotNull node "node"
+        let result = 
+            match node with
+            | :? XmlDocument as document -> node.SelectNodes(xpath, (nsmgr document))
+            | n when n.OwnerDocument <> null -> node.SelectNodes(xpath, (nsmgr node.OwnerDocument))
+            | _ -> node.SelectNodes(xpath)
+        Seq.cast<XmlNode>(result)
+
+    /// Performs an XPath query on an XML node and returns a single result node
+    let querySingle xpath (node : XmlNode) =
+        Argument.validateNotNull xpath "xpath"
+        Argument.validateNotNull node "node"
+        match node with
+        | :? XmlDocument as document -> node.SelectSingleNode(xpath, (nsmgr document))
+        | n when n.OwnerDocument <> null -> node.SelectSingleNode(xpath, (nsmgr node.OwnerDocument))
+        | _ -> node.SelectSingleNode(xpath)
+
+    /// Performs an XPath query on an XML node and returns a single result node, returns None if no results were
+    /// returned from the query
+    let tryQuerySingle xpath (node : XmlNode) =
+        if (xpath <> null) && (node <> null) then
+            let result = 
+                match node with
+                | :? XmlDocument as document -> node.SelectSingleNode(xpath, (nsmgr document))
+                | n when n.OwnerDocument <> null -> node.SelectSingleNode(xpath, (nsmgr node.OwnerDocument))
+                | _ -> node.SelectSingleNode(xpath)
+            if result <> null then Some result
+            else None
         else None
