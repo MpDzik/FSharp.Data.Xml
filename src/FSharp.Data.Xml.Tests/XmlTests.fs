@@ -470,3 +470,65 @@ type XmlTests() =
         Assert.Equal(1, result.Length)
         Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
         Assert.Equal("<root><foo>a</foo><bar><quux>q</quux></bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``unwrap should throw exception when element is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.unwrap null |> ignore)
+        Assert.Equal("element", ex.ParamName)
+
+    [<Fact>]
+    let ``unwrap should move single child element to parent``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar><baz>c</baz></bar><quux>d</quux></root>" |> Xml.ofString
+        let result = Xml.unwrap (document |> (Xml.querySingle "/root/bar") :?> XmlElement)
+        Assert.Equal(1, result.Length)
+        Assert.Equal("<baz>c</baz>", result.[0].OuterXml)
+        Assert.Equal("<root><foo>a</foo><baz>c</baz><quux>d</quux></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``unwrap should move multiple child elements to parent``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar><baz>c1</baz><baz>c2</baz><baz>c3</baz></bar><quux>d</quux></root>"
+                       |> Xml.ofString
+        let result = Xml.unwrap (document |> (Xml.querySingle "/root/bar") :?> XmlElement)
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<baz>c1</baz>", result.[0].OuterXml)
+        Assert.Equal("<baz>c2</baz>", result.[1].OuterXml)
+        Assert.Equal("<baz>c3</baz>", result.[2].OuterXml)
+        Assert.Equal("<root><foo>a</foo><baz>c1</baz><baz>c2</baz><baz>c3</baz><quux>d</quux></root>",
+                     (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``unwrap should handle empty node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar></bar><quux>d</quux></root>" |> Xml.ofString
+        let result = Xml.unwrap (document |> (Xml.querySingle "/root/bar") :?> XmlElement)
+        Assert.Equal(0, result.Length)
+        Assert.Equal("<root><foo>a</foo><quux>d</quux></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``wrap should throw exception when elementName is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.wrap null [] |> ignore)
+        Assert.Equal("elementName", ex.ParamName)
+
+    [<Fact>]
+    let ``wrap should throw exception when nodes is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.wrap "foo" null |> ignore)
+        Assert.Equal("nodes", ex.ParamName)
+
+    [<Fact>]
+    let ``wrap should handle single element``() =
+        let document = xmlDecl + "<root><foo>a</foo><baz>c</baz><quux>d</quux></root>" |> Xml.ofString
+        let result = Xml.query "/root/baz" document |> Xml.wrap "bar"
+        Assert.Equal(1, result.Length)
+        Assert.Equal("<baz>c</baz>", result.[0].OuterXml)
+        Assert.Equal("<root><foo>a</foo><bar><baz>c</baz></bar><quux>d</quux></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``wrap should handle multiple elements``() =
+        let document = xmlDecl + "<root><foo>a</foo><baz>c1</baz><baz>c2</baz><baz>c3</baz><quux>d</quux></root>"
+                       |> Xml.ofString
+        let result = Xml.query "/root/baz" document |> Xml.wrap "bar"
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<baz>c1</baz>", result.[0].OuterXml)
+        Assert.Equal("<baz>c2</baz>", result.[1].OuterXml)
+        Assert.Equal("<baz>c3</baz>", result.[2].OuterXml)
+        Assert.Equal("<root><foo>a</foo><bar><baz>c1</baz><baz>c2</baz><baz>c3</baz></bar><quux>d</quux></root>",
+                     (document |> Xml.root).OuterXml)

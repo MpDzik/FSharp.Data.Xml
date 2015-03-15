@@ -131,3 +131,36 @@ module Xml =
         Argument.validateNotNull newNodes "newNodes"
         let insertOp (parentNode : XmlNode) (newNode : XmlNode) = parentNode.PrependChild newNode |> ignore
         (insertChildGeneric node (newNodes |> List.ofSeq |> List.rev) insertOp) |> List.rev
+
+    /// Replaces the specified XML element in a document with the element's child elements, returns the moved elements
+    let unwrap (element : XmlElement) = 
+        let rec unwrapRec (parent : XmlNode) childNodes unwrapped = 
+            match childNodes with
+            | [] -> unwrapped
+            | h :: t ->
+                parent.InsertBefore(h, element) |> ignore
+                unwrapRec parent t (h :: unwrapped)
+        Argument.validateNotNull element "element"
+        let parent = element.ParentNode
+        let childNodes = element.ChildNodes |> Seq.cast<XmlNode> |> Seq.filter (fun n -> n :? XmlElement) |> List.ofSeq
+        let unwrapped = unwrapRec parent childNodes []
+        parent.RemoveChild(element) |> ignore
+        unwrapped |> List.rev
+
+    /// Replaces the specified nodes with a new node which contains the specified nodes, returns the moved nodes
+    let wrap (elementName : string) (nodes : seq<XmlNode>) =
+        let rec moveNodes nodes (parent : XmlNode) moved =
+            match nodes with
+            | [] -> moved
+            | h :: t ->
+                let imported = importNode parent.OwnerDocument h
+                parent.AppendChild(imported) |> ignore
+                moveNodes t parent (imported :: moved)
+        Argument.validateNotNull elementName "elementName"
+        Argument.validateNotNull nodes "nodes"
+        let childNodes = nodes |> List.ofSeq
+        if childNodes.Length = 0 then [] else
+            let firstChild = childNodes |> List.head
+            let parent = firstChild.OwnerDocument.CreateElement(elementName)
+            prepend firstChild (Seq.singleton (parent :> XmlNode)) |> ignore
+            (moveNodes childNodes parent []) |> List.rev
