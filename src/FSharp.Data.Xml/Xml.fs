@@ -132,6 +132,23 @@ module Xml =
         let insertOp (parentNode : XmlNode) (newNode : XmlNode) = parentNode.PrependChild newNode |> ignore
         (insertChildGeneric node (newNodes |> List.ofSeq |> List.rev) insertOp) |> List.rev
 
+    /// Replaces the specified XML node with a new node, returns the inserted node
+    let replace (node : XmlNode) (newNode : XmlNode) =
+        Argument.validateNotNull node "node"
+        Argument.validateNotNull newNode "newNode"
+        let parent = node.ParentNode
+        let imported = importNode parent.OwnerDocument newNode
+        parent.ReplaceChild(imported, node) |> ignore
+        imported
+
+    /// Replaces the specified XML node with a list of new nodes, returns the inserted nodes
+    let replaceMany (node : XmlNode) (newNodes : seq<XmlNode>) =
+        Argument.validateNotNull node "node"
+        Argument.validateNotNull newNodes "newNodes"
+        let inserted = append node newNodes
+        node.ParentNode.RemoveChild(node) |> ignore
+        inserted
+
     /// Replaces the specified XML element in a document with the element's child elements, returns the moved elements
     let unwrap (element : XmlElement) = 
         let rec unwrapRec (parent : XmlNode) childNodes unwrapped = 

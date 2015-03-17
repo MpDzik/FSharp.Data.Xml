@@ -472,6 +472,98 @@ type XmlTests() =
         Assert.Equal("<root><foo>a</foo><bar><quux>q</quux></bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
 
     [<Fact>]
+    let ``replace should throw exception when node is null``() =
+        let xml = xmlDecl + "<root />"
+        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.replace null node |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Fact>]
+    let ``replace should throw exception when newNode is null``() =
+        let xml = xmlDecl + "<root />"
+        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.replace node null |> ignore)
+        Assert.Equal("newNode", ex.ParamName)
+
+    [<Fact>]
+    let ``replace should replace first node``() =
+        let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/child/foo"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.replace node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><child><quux>q</quux><bar>b</bar><baz>c</baz></child></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``replace should replace middle node``() =
+        let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/child/bar"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.replace node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><child><foo>a</foo><quux>q</quux><baz>c</baz></child></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``replace should replace last node``() =
+        let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/child/baz"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.replace node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><child><foo>a</foo><bar>b</bar><quux>q</quux></child></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``replaceMany should throw exception when node is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.replaceMany null [] |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Fact>]
+    let ``replaceMany should throw exception when newNodes is null``() =
+        let xml = xmlDecl + "<root />"
+        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.replaceMany node null |> ignore)
+        Assert.Equal("newNodes", ex.ParamName)
+
+    [<Fact>]
+    let ``replaceMany should replace first node``() =
+        let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/child/foo"
+        let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
+        let result = Xml.replaceMany node newNodes
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
+        Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
+        Assert.Equal("<quux>q3</quux>", result.[2].OuterXml)
+        Assert.Equal("<root><child><quux>q1</quux><quux>q2</quux><quux>q3</quux><bar>b</bar><baz>c</baz></child></root>",
+                     (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``replaceMany should replace middle node``() =
+        let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/child/bar"
+        let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
+        let result = Xml.replaceMany node newNodes
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
+        Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
+        Assert.Equal("<quux>q3</quux>", result.[2].OuterXml)
+        Assert.Equal("<root><child><foo>a</foo><quux>q1</quux><quux>q2</quux><quux>q3</quux><baz>c</baz></child></root>",
+                     (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``replaceMany should replace last node``() =
+        let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/child/baz"
+        let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
+        let result = Xml.replaceMany node newNodes
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
+        Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
+        Assert.Equal("<quux>q3</quux>", result.[2].OuterXml)
+        Assert.Equal("<root><child><foo>a</foo><bar>b</bar><quux>q1</quux><quux>q2</quux><quux>q3</quux></child></root>",
+                     (document |> Xml.root).OuterXml)
+
+    [<Fact>]
     let ``unwrap should throw exception when element is null``() =
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.unwrap null |> ignore)
         Assert.Equal("element", ex.ParamName)
