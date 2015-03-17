@@ -702,6 +702,40 @@ type XmlTests() =
                      (document |> Xml.root).OuterXml)
 
     [<Fact>]
+    let ``remove should throw exception when node is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.remove null |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Theory>]
+    [<InlineData("<root><child><foo>a</foo><bar>b</bar><quux>q</quux><baz>c</baz></child></root>")>]
+    [<InlineData("<root><child><quux>q</quux><foo>a</foo><bar>b</bar><baz>c</baz></child></root>")>]
+    [<InlineData("<root><child><foo>a</foo><bar>b</bar><baz>c</baz><quux>q</quux></child></root>")>]
+    let ``remove should remove node``(xml : string) =
+        let document = xmlDecl + xml |> Xml.ofString
+        let result = Xml.remove (document |> Xml.querySingle "/root/child/quux")
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``removeMany should throw exception when nodes is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.removeMany null |> ignore)
+        Assert.Equal("nodes", ex.ParamName)
+
+    [<Theory>]
+    [<InlineData("<root><foo>a</foo><quux>q1</quux><quux>q2</quux><quux>q3</quux><bar>b</bar></root>")>]
+    [<InlineData("<root><quux>q1</quux><quux>q2</quux><quux>q3</quux><foo>a</foo><bar>b</bar></root>")>]
+    [<InlineData("<root><foo>a</foo><bar>b</bar><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>")>]
+    [<InlineData("<root><quux>q1</quux><foo>a</foo><quux>q2</quux><bar>b</bar><quux>q3</quux></root>")>]
+    let ``removeMany should remove nodes``(xml : string) =
+        let document = xmlDecl + xml |> Xml.ofString
+        let result = Xml.removeMany (document |> Xml.query "/root/quux")
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
+        Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
+        Assert.Equal("<quux>q3</quux>", result.[2].OuterXml)
+        Assert.Equal("<root><foo>a</foo><bar>b</bar></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
     let ``unwrap should throw exception when element is null``() =
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.unwrap null |> ignore)
         Assert.Equal("element", ex.ParamName)

@@ -180,6 +180,18 @@ module Xml =
         node.ParentNode.RemoveChild(node) |> ignore
         inserted
 
+    /// Removes the specified XML node, returns the removed node
+    let remove (node : XmlNode) =
+        Argument.validateNotNull node "node"
+        node.ParentNode.RemoveChild(node) |> ignore
+        node
+
+    /// Removes the specified XML nodes, returns the removed nodes
+    let removeMany (nodes : seq<XmlNode>) =
+        Argument.validateNotNull nodes "nodes"
+        for node in nodes do node.ParentNode.RemoveChild(node) |> ignore
+        List.ofSeq nodes
+
     /// Replaces the specified XML element in a document with the element's child elements, returns the moved elements
     let unwrap (element : XmlElement) = 
         let rec unwrapRec (parent : XmlNode) childNodes unwrapped = 
