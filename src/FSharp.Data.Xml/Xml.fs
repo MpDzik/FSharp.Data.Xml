@@ -98,18 +98,41 @@ module Xml =
         Argument.validateNotNull newNodes "newNodes"
         (insertRec node (List.ofSeq newNodes) []) |> List.rev
 
+    /// Inserts the specified XML node after the specified node, returns the inserted node
+    let append (node : XmlNode) (newNode : XmlNode) =
+        Argument.validateNotNull node "node"
+        Argument.validateNotNull newNode "newNode"
+        let newNode = newNode |> importNode node.OwnerDocument
+        node.ParentNode.InsertAfter(newNode, node) |> ignore
+        newNode
+
     /// Inserts the specified XML nodes after the specified node, returns the inserted nodes
-    let append (node : XmlNode) (newNodes : seq<XmlNode>) =
+    let appendMany (node : XmlNode) (newNodes : seq<XmlNode>) =
         let insertOp newChild refChild (parentNode : XmlNode) = parentNode.InsertAfter(newChild, refChild)
         insertGeneric node newNodes insertOp
 
+    /// Inserts the specified XML node before the specified node, returns the inserted node
+    let prepend (node : XmlNode) (newNode : XmlNode) =
+        Argument.validateNotNull node "node"
+        Argument.validateNotNull newNode "newNode"
+        let newNode = newNode |> importNode node.OwnerDocument
+        node.ParentNode.InsertBefore(newNode, node) |> ignore
+        newNode
+
     /// Inserts the specified XML nodes before the specified node, returns the inserted nodes
-    let prepend (node : XmlNode) (newNodes : seq<XmlNode>) =
+    let prependMany (node : XmlNode) (newNodes : seq<XmlNode>) =
         Argument.validateNotNull newNodes "newNodes"
         let insertOp newChild refChild (parentNode : XmlNode) = parentNode.InsertBefore(newChild, refChild)
         (insertGeneric node (newNodes |> List.ofSeq |> List.rev) insertOp) |> List.rev
 
-    let private insertChildGeneric (node : XmlNode) (newNodes : seq<XmlNode>) (insertOp : XmlNode -> XmlNode -> unit) =
+    let private insertChildGeneric (node : XmlNode) (newNode : XmlNode) (insertOp : XmlNode -> XmlNode -> unit) =
+        Argument.validateNotNull node "node"
+        Argument.validateNotNull newNode "newNode"
+        let newNode = newNode |> importNode node.OwnerDocument
+        insertOp node newNode
+        newNode
+
+    let private insertChildrenGeneric (node : XmlNode) (newNodes : seq<XmlNode>) (insertOp : XmlNode -> XmlNode -> unit) =
         let rec insertRec (node : XmlNode) (newNodes : XmlNode list) appended =
             match newNodes with
             | [] -> appended
@@ -121,16 +144,24 @@ module Xml =
         Argument.validateNotNull newNodes "newNodes"
         (insertRec node (List.ofSeq newNodes) []) |> List.rev
 
+    /// Inserts the specified XML node as the last child of the specified node, returns the inserted node
+    let appendChild (node : XmlNode) (newNode : XmlNode) =
+        insertChildGeneric node newNode (fun parent newNode -> parent.AppendChild newNode |> ignore)
+
     /// Inserts the specified XML nodes as the last children of the specified node, returns the inserted nodes
-    let appendChild (node : XmlNode) (newNodes : seq<XmlNode>) =
+    let appendChildren (node : XmlNode) (newNodes : seq<XmlNode>) =
         let insertOp (parentNode : XmlNode) (newNode : XmlNode) = parentNode.AppendChild newNode |> ignore
-        insertChildGeneric node newNodes insertOp
+        insertChildrenGeneric node newNodes insertOp
+
+    /// Inserts the specified XML node as the first child of the specified node, returns the inserted node
+    let prependChild (node : XmlNode) (newNode : XmlNode) =
+        insertChildGeneric node newNode (fun parent newNode -> parent.PrependChild newNode |> ignore)
 
     /// Inserts the specified XML nodes as the first children of the specified node, returns the inserted nodes
-    let prependChild (node : XmlNode) (newNodes : seq<XmlNode>) =
+    let prependChildren (node : XmlNode) (newNodes : seq<XmlNode>) =
         Argument.validateNotNull newNodes "newNodes"
         let insertOp (parentNode : XmlNode) (newNode : XmlNode) = parentNode.PrependChild newNode |> ignore
-        (insertChildGeneric node (newNodes |> List.ofSeq |> List.rev) insertOp) |> List.rev
+        (insertChildrenGeneric node (newNodes |> List.ofSeq |> List.rev) insertOp) |> List.rev
 
     /// Replaces the specified XML node with a new node, returns the inserted node
     let replace (node : XmlNode) (newNode : XmlNode) =
@@ -145,7 +176,7 @@ module Xml =
     let replaceMany (node : XmlNode) (newNodes : seq<XmlNode>) =
         Argument.validateNotNull node "node"
         Argument.validateNotNull newNodes "newNodes"
-        let inserted = append node newNodes
+        let inserted = appendMany node newNodes
         node.ParentNode.RemoveChild(node) |> ignore
         inserted
 
@@ -179,5 +210,5 @@ module Xml =
         if childNodes.Length = 0 then [] else
             let firstChild = childNodes |> List.head
             let parent = firstChild.OwnerDocument.CreateElement(elementName)
-            prepend firstChild (Seq.singleton (parent :> XmlNode)) |> ignore
+            prependMany firstChild (Seq.singleton (parent :> XmlNode)) |> ignore
             (moveNodes childNodes parent []) |> List.rev

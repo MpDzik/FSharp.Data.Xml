@@ -266,8 +266,8 @@ type XmlTests() =
     [<Fact>]
     let ``append should throw exception when node is null``() =
         let xml = xmlDecl + "<root />"
-        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
-        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.append null newNodes |> ignore)
+        let newNode = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.append null newNode |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
@@ -275,16 +275,15 @@ type XmlTests() =
         let xml = xmlDecl + "<root />"
         let node = Xml.ofString xml |> Xml.root :> XmlNode
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.append node null |> ignore)
-        Assert.Equal("newNodes", ex.ParamName)
+        Assert.Equal("newNode", ex.ParamName)
 
     [<Fact>]
     let ``append should insert sibbling node``() =
         let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/bar"
         let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.append node [| newNode |]
-        Assert.Equal(1, result.Length)
-        Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
+        let result = Xml.append node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
         Assert.Equal("<root><foo>a</foo><bar>b</bar><quux>q</quux><baz>c</baz></root>", (document |> Xml.root).OuterXml)
 
     [<Fact>]
@@ -292,9 +291,8 @@ type XmlTests() =
         let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/foo"
         let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.append node [| newNode |]
-        Assert.Equal(1, result.Length)
-        Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
+        let result = Xml.append node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
         Assert.Equal("<root><foo>a</foo><quux>q</quux><bar>b</bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
 
     [<Fact>]
@@ -302,17 +300,30 @@ type XmlTests() =
         let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/baz"
         let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.append node [| newNode |]
-        Assert.Equal(1, result.Length)
-        Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
+        let result = Xml.append node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
         Assert.Equal("<root><foo>a</foo><bar>b</bar><baz>c</baz><quux>q</quux></root>", (document |> Xml.root).OuterXml)
 
     [<Fact>]
-    let ``append should insert multiple sibbling nodes``() =
+    let ``appendMany should throw exception when node is null``() =
+        let xml = xmlDecl + "<root />"
+        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendMany null newNodes |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Fact>]
+    let ``appendMany should throw exception when newNodes is null``() =
+        let xml = xmlDecl + "<root />"
+        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendMany node null |> ignore)
+        Assert.Equal("newNodes", ex.ParamName)
+
+    [<Fact>]
+    let ``appendMany should insert sibbling nodes``() =
         let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/bar"
         let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
-        let result = Xml.append node newNodes
+        let result = Xml.appendMany node newNodes
         Assert.Equal(3, result.Length)
         Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
         Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
@@ -321,55 +332,11 @@ type XmlTests() =
                      (document |> Xml.root).OuterXml)
 
     [<Fact>]
-    let ``prepend should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
-        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prepend null newNodes |> ignore)
-        Assert.Equal("node", ex.ParamName)
-
-    [<Fact>]
-    let ``prepend should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
-        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prepend node null |> ignore)
-        Assert.Equal("newNodes", ex.ParamName)
-
-    [<Fact>]
-    let ``prepend should insert sibbling node``() =
-        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
-        let node = document |> Xml.querySingle "/root/bar"
-        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.prepend node [| newNode |]
-        Assert.Equal(1, result.Length)
-        Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
-        Assert.Equal("<root><foo>a</foo><quux>q</quux><bar>b</bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
-
-    [<Fact>]
-    let ``prepend should insert sibbling node before first node``() =
+    let ``appendMany should insert sibbling node after first node``() =
         let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/foo"
-        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.prepend node [| newNode |]
-        Assert.Equal(1, result.Length)
-        Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
-        Assert.Equal("<root><quux>q</quux><foo>a</foo><bar>b</bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
-
-    [<Fact>]
-    let ``prepend should insert sibbling node before last node``() =
-        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
-        let node = document |> Xml.querySingle "/root/baz"
-        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.prepend node [| newNode |]
-        Assert.Equal(1, result.Length)
-        Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
-        Assert.Equal("<root><foo>a</foo><bar>b</bar><quux>q</quux><baz>c</baz></root>", (document |> Xml.root).OuterXml)
-
-    [<Fact>]
-    let ``preppend should insert multiple sibbling nodes``() =
-        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
-        let node = document |> Xml.querySingle "/root/bar"
         let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
-        let result = Xml.prepend node newNodes
+        let result = Xml.appendMany node newNodes
         Assert.Equal(3, result.Length)
         Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
         Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
@@ -378,10 +345,117 @@ type XmlTests() =
                      (document |> Xml.root).OuterXml)
 
     [<Fact>]
-    let ``appendChild should throw exception when node is null``() =
+    let ``appendMany should insert sibbling node after last node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/baz"
+        let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
+        let result = Xml.appendMany node newNodes
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
+        Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
+        Assert.Equal("<quux>q3</quux>", result.[2].OuterXml)
+        Assert.Equal("<root><foo>a</foo><bar>b</bar><baz>c</baz><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>",
+                     (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``prepend should throw exception when node is null``() =
+        let xml = xmlDecl + "<root />"
+        let newNode = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prepend null newNode |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Fact>]
+    let ``prepend should throw exception when newNodes is null``() =
+        let xml = xmlDecl + "<root />"
+        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prepend node null |> ignore)
+        Assert.Equal("newNode", ex.ParamName)
+
+    [<Fact>]
+    let ``prepend should insert sibbling node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/bar"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.prepend node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><foo>a</foo><quux>q</quux><bar>b</bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``prepend should insert sibbling node before first node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/foo"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.prepend node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><quux>q</quux><foo>a</foo><bar>b</bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``prepend should insert sibbling node before last node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/baz"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.prepend node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><foo>a</foo><bar>b</bar><quux>q</quux><baz>c</baz></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``prependMany should throw exception when node is null``() =
         let xml = xmlDecl + "<root />"
         let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
-        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChild null newNodes |> ignore)
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependMany null newNodes |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Fact>]
+    let ``prependMany should throw exception when newNodes is null``() =
+        let xml = xmlDecl + "<root />"
+        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependMany node null |> ignore)
+        Assert.Equal("newNodes", ex.ParamName)
+
+    [<Fact>]
+    let ``prependMany should insert sibbling node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/bar"
+        let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
+        let result = Xml.prependMany node newNodes
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
+        Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
+        Assert.Equal("<quux>q3</quux>", result.[2].OuterXml)
+        Assert.Equal("<root><foo>a</foo><quux>q1</quux><quux>q2</quux><quux>q3</quux><bar>b</bar><baz>c</baz></root>",
+                     (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``prependMany should insert sibbling node before first node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/foo"
+        let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
+        let result = Xml.prependMany node newNodes
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
+        Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
+        Assert.Equal("<quux>q3</quux>", result.[2].OuterXml)
+        Assert.Equal("<root><quux>q1</quux><quux>q2</quux><quux>q3</quux><foo>a</foo><bar>b</bar><baz>c</baz></root>",
+                     (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``prependMany should insert sibbling node before last node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/baz"
+        let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
+        let result = Xml.prependMany node newNodes
+        Assert.Equal(3, result.Length)
+        Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
+        Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
+        Assert.Equal("<quux>q3</quux>", result.[2].OuterXml)
+        Assert.Equal("<root><foo>a</foo><bar>b</bar><quux>q1</quux><quux>q2</quux><quux>q3</quux><baz>c</baz></root>",
+                     (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``appendChild should throw exception when node is null``() =
+        let xml = xmlDecl + "<root />"
+        let newNode = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChild null newNode |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
@@ -389,24 +463,56 @@ type XmlTests() =
         let xml = xmlDecl + "<root />"
         let node = Xml.ofString xml |> Xml.root :> XmlNode
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChild node null |> ignore)
-        Assert.Equal("newNodes", ex.ParamName)
+        Assert.Equal("newNode", ex.ParamName)
 
     [<Fact>]
     let ``appendChild should append child node``() =
         let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/child"
         let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.appendChild node [| newNode |]
+        let result = Xml.appendChild node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><child><foo>a</foo><bar>b</bar><baz>c</baz><quux>q</quux></child></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``appendChild should insert child node into empty node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar></bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/bar"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.appendChild node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><foo>a</foo><bar><quux>q</quux></bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``appendChildren should throw exception when node is null``() =
+        let xml = xmlDecl + "<root />"
+        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChildren null newNodes |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Fact>]
+    let ``appendChildren should throw exception when newNodes is null``() =
+        let xml = xmlDecl + "<root />"
+        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChildren node null |> ignore)
+        Assert.Equal("newNodes", ex.ParamName)
+
+    [<Fact>]
+    let ``appendChildren should append child node``() =
+        let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/child"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.appendChildren node [| newNode |]
         Assert.Equal(1, result.Length)
         Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
         Assert.Equal("<root><child><foo>a</foo><bar>b</bar><baz>c</baz><quux>q</quux></child></root>", (document |> Xml.root).OuterXml)
 
     [<Fact>]
-    let ``appendChild should append multiple child nodes``() =
+    let ``appendChildren should append multiple child nodes``() =
         let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/child"
         let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
-        let result = Xml.appendChild node newNodes
+        let result = Xml.appendChildren node newNodes
         Assert.Equal(3, result.Length)
         Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
         Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
@@ -415,11 +521,11 @@ type XmlTests() =
                      (document |> Xml.root).OuterXml)
 
     [<Fact>]
-    let ``appendChild should insert child node into empty node``() =
+    let ``appendChildren should insert child node into empty node``() =
         let document = xmlDecl + "<root><foo>a</foo><bar></bar><baz>c</baz></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/bar"
         let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.appendChild node [| newNode |]
+        let result = Xml.appendChildren node [| newNode |]
         Assert.Equal(1, result.Length)
         Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
         Assert.Equal("<root><foo>a</foo><bar><quux>q</quux></bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
@@ -427,8 +533,8 @@ type XmlTests() =
     [<Fact>]
     let ``prependChild should throw exception when node is null``() =
         let xml = xmlDecl + "<root />"
-        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
-        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChild null newNodes |> ignore)
+        let newNode = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChild null newNode |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
@@ -436,24 +542,56 @@ type XmlTests() =
         let xml = xmlDecl + "<root />"
         let node = Xml.ofString xml |> Xml.root :> XmlNode
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChild node null |> ignore)
-        Assert.Equal("newNodes", ex.ParamName)
+        Assert.Equal("newNode", ex.ParamName)
 
     [<Fact>]
     let ``prependChild should prepend child node``() =
         let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/child"
         let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.prependChild node [| newNode |]
+        let result = Xml.prependChild node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><child><quux>q</quux><foo>a</foo><bar>b</bar><baz>c</baz></child></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``prependChild should insert child node into empty node``() =
+        let document = xmlDecl + "<root><foo>a</foo><bar></bar><baz>c</baz></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/bar"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.prependChild node newNode
+        Assert.Equal("<quux>q</quux>", result.OuterXml)
+        Assert.Equal("<root><foo>a</foo><bar><quux>q</quux></bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``prependChildren should throw exception when node is null``() =
+        let xml = xmlDecl + "<root />"
+        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChildren null newNodes |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Fact>]
+    let ``prependChildren should throw exception when newNodes is null``() =
+        let xml = xmlDecl + "<root />"
+        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChildren node null |> ignore)
+        Assert.Equal("newNodes", ex.ParamName)
+
+    [<Fact>]
+    let ``prependChildren should prepend child node``() =
+        let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
+        let node = document |> Xml.querySingle "/root/child"
+        let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
+        let result = Xml.prependChildren node [| newNode |]
         Assert.Equal(1, result.Length)
         Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
         Assert.Equal("<root><child><quux>q</quux><foo>a</foo><bar>b</bar><baz>c</baz></child></root>", (document |> Xml.root).OuterXml)
 
     [<Fact>]
-    let ``prependChild should prepend multiple child nodes``() =
+    let ``prependChildren should prepend multiple child nodes``() =
         let document = xmlDecl + "<root><child><foo>a</foo><bar>b</bar><baz>c</baz></child></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/child"
         let newNodes = xmlDecl + "<root><quux>q1</quux><quux>q2</quux><quux>q3</quux></root>" |> Xml.ofString |> Xml.query "/root/quux"
-        let result = Xml.prependChild node newNodes
+        let result = Xml.prependChildren node newNodes
         Assert.Equal(3, result.Length)
         Assert.Equal("<quux>q1</quux>", result.[0].OuterXml)
         Assert.Equal("<quux>q2</quux>", result.[1].OuterXml)
@@ -462,11 +600,11 @@ type XmlTests() =
                      (document |> Xml.root).OuterXml)
 
     [<Fact>]
-    let ``prependChild should insert child node into empty node``() =
+    let ``prependChildren should insert child node into empty node``() =
         let document = xmlDecl + "<root><foo>a</foo><bar></bar><baz>c</baz></root>" |> Xml.ofString
         let node = document |> Xml.querySingle "/root/bar"
         let newNode = xmlDecl + "<quux>q</quux>" |> Xml.ofString |> Xml.root
-        let result = Xml.prependChild node [| newNode |]
+        let result = Xml.prependChildren node [| newNode |]
         Assert.Equal(1, result.Length)
         Assert.Equal("<quux>q</quux>", (result |> List.head).OuterXml)
         Assert.Equal("<root><foo>a</foo><bar><quux>q</quux></bar><baz>c</baz></root>", (document |> Xml.root).OuterXml)
