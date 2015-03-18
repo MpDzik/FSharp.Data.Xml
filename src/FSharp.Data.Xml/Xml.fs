@@ -208,7 +208,7 @@ module Xml =
         unwrapped |> List.rev
 
     /// Replaces the specified nodes with a new node which contains the specified nodes, returns the moved nodes
-    let wrap (elementName : string) (nodes : seq<XmlNode>) =
+    let private wrapGeneric (elementName : string) (nodes : seq<XmlNode>) (nodeCtor : XmlNode -> XmlElement) =
         let rec moveNodes nodes (parent : XmlNode) moved =
             match nodes with
             | [] -> moved
@@ -221,6 +221,15 @@ module Xml =
         let childNodes = nodes |> List.ofSeq
         if childNodes.Length = 0 then [] else
             let firstChild = childNodes |> List.head
-            let parent = firstChild.OwnerDocument.CreateElement(elementName)
+            let parent = nodeCtor firstChild
             prependMany firstChild (Seq.singleton (parent :> XmlNode)) |> ignore
             (moveNodes childNodes parent []) |> List.rev
+
+    /// Replaces the specified nodes with a new node which contains the specified nodes, returns the moved nodes
+    let wrap (elementName : string) (nodes : seq<XmlNode>) =
+        wrapGeneric elementName nodes (fun x -> x.OwnerDocument.CreateElement(elementName))
+
+    /// Replaces the specified nodes with a new node which contains the specified nodes, returns the moved nodes
+    let wrapNs (elementName : string) (namespaceUri : string) (nodes : seq<XmlNode>) =
+        Argument.validateNotNull namespaceUri "namespaceUri"
+        wrapGeneric elementName nodes (fun x -> x.OwnerDocument.CreateElement(elementName, namespaceUri))
