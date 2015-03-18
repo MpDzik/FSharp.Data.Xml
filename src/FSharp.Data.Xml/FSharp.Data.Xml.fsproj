@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Argument.fs" />
+    <Compile Include="XmlActivePatterns.fs" />
     <Compile Include="Xml.fs" />
   </ItemGroup>
   <PropertyGroup>
