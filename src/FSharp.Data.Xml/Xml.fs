@@ -219,11 +219,12 @@ module Xml =
         Argument.validateNotNull elementName "elementName"
         Argument.validateNotNull nodes "nodes"
         let childNodes = nodes |> List.ofSeq
-        if childNodes.Length = 0 then [] else
+        if childNodes.Length = 0 then None else
             let firstChild = childNodes |> List.head
             let parent = nodeCtor firstChild
             prependMany firstChild (Seq.singleton (parent :> XmlNode)) |> ignore
-            (moveNodes childNodes parent []) |> List.rev
+            (moveNodes childNodes parent []) |> ignore
+            Some(parent)
 
     /// Replaces the specified nodes with a new node which contains the specified nodes, returns the moved nodes
     let wrap (elementName : string) (nodes : seq<XmlNode>) =

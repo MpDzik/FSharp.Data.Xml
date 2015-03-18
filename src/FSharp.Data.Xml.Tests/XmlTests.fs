@@ -781,8 +781,7 @@ type XmlTests() =
     let ``wrap should handle single element``() =
         let document = xmlDecl + "<root><foo>a</foo><baz>c</baz><quux>d</quux></root>" |> Xml.ofString
         let result = Xml.query "/root/baz" document |> Xml.wrap "bar"
-        Assert.Equal(1, result.Length)
-        Assert.Equal("<baz>c</baz>", result.[0].OuterXml)
+        Assert.Equal("<bar><baz>c</baz></bar>", result.Value.OuterXml)
         Assert.Equal("<root><foo>a</foo><bar><baz>c</baz></bar><quux>d</quux></root>", (document |> Xml.root).OuterXml)
 
     [<Fact>]
@@ -790,10 +789,7 @@ type XmlTests() =
         let document = xmlDecl + "<root><foo>a</foo><baz>c1</baz><baz>c2</baz><baz>c3</baz><quux>d</quux></root>"
                        |> Xml.ofString
         let result = Xml.query "/root/baz" document |> Xml.wrap "bar"
-        Assert.Equal(3, result.Length)
-        Assert.Equal("<baz>c1</baz>", result.[0].OuterXml)
-        Assert.Equal("<baz>c2</baz>", result.[1].OuterXml)
-        Assert.Equal("<baz>c3</baz>", result.[2].OuterXml)
+        Assert.Equal("<bar><baz>c1</baz><baz>c2</baz><baz>c3</baz></bar>", result.Value.OuterXml)
         Assert.Equal("<root><foo>a</foo><bar><baz>c1</baz><baz>c2</baz><baz>c3</baz></bar><quux>d</quux></root>",
                      (document |> Xml.root).OuterXml)
 
@@ -816,8 +812,7 @@ type XmlTests() =
     let ``wrapNs should handle single element``() =
         let document = xmlDecl + "<root><foo>a</foo><baz>c</baz><quux>d</quux></root>" |> Xml.ofString
         let result = Xml.query "/root/baz" document |> Xml.wrapNs "x:bar" "http://dummy"
-        Assert.Equal(1, result.Length)
-        Assert.Equal("<baz>c</baz>", result.[0].OuterXml)
+        Assert.Equal("<x:bar xmlns:x=\"http://dummy\"><baz>c</baz></x:bar>", result.Value.OuterXml)
         Assert.Equal("<root><foo>a</foo><x:bar xmlns:x=\"http://dummy\"><baz>c</baz></x:bar><quux>d</quux></root>",
                      (document |> Xml.root).OuterXml)
 
@@ -826,9 +821,6 @@ type XmlTests() =
         let document = xmlDecl + "<root><foo>a</foo><baz>c1</baz><baz>c2</baz><baz>c3</baz><quux>d</quux></root>"
                        |> Xml.ofString
         let result = Xml.query "/root/baz" document |> Xml.wrapNs "x:bar" "http://dummy"
-        Assert.Equal(3, result.Length)
-        Assert.Equal("<baz>c1</baz>", result.[0].OuterXml)
-        Assert.Equal("<baz>c2</baz>", result.[1].OuterXml)
-        Assert.Equal("<baz>c3</baz>", result.[2].OuterXml)
+        Assert.Equal("<x:bar xmlns:x=\"http://dummy\"><baz>c1</baz><baz>c2</baz><baz>c3</baz></x:bar>", result.Value.OuterXml)
         Assert.Equal("<root><foo>a</foo><x:bar xmlns:x=\"http://dummy\"><baz>c1</baz><baz>c2</baz><baz>c3</baz></x:bar><quux>d</quux></root>",
                      (document |> Xml.root).OuterXml)
