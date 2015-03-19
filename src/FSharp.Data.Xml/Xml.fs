@@ -51,44 +51,44 @@ module Xml =
         else None
 
     /// Performs an XPath query on an XML node and returns the result nodes
-    let query xpath (node : XmlNode) =
+    let query xpath (node : #XmlNode) =
         Argument.validateNotNull xpath "xpath"
         Argument.validateNotNull node "node"
         let result = 
-            match node with
+            match box node with
             | :? XmlDocument as document -> node.SelectNodes(xpath, (nsmgr document))
-            | n when n.OwnerDocument <> null -> node.SelectNodes(xpath, (nsmgr node.OwnerDocument))
+            | :? XmlNode as n when n.OwnerDocument <> null -> node.SelectNodes(xpath, (nsmgr node.OwnerDocument))
             | _ -> node.SelectNodes(xpath)
         Seq.cast<XmlNode>(result)
 
     /// Performs an XPath query on an XML node and returns a single result node
-    let querySingle xpath (node : XmlNode) =
+    let querySingle xpath (node : #XmlNode) =
         Argument.validateNotNull xpath "xpath"
         Argument.validateNotNull node "node"
-        match node with
+        match box node with
         | :? XmlDocument as document -> node.SelectSingleNode(xpath, (nsmgr document))
-        | n when n.OwnerDocument <> null -> node.SelectSingleNode(xpath, (nsmgr node.OwnerDocument))
+        | :? XmlNode as n when n.OwnerDocument <> null -> node.SelectSingleNode(xpath, (nsmgr node.OwnerDocument))
         | _ -> node.SelectSingleNode(xpath)
 
     /// Performs an XPath query on an XML node and returns a single result node, returns None if no results were
     /// returned from the query
-    let tryQuerySingle xpath (node : XmlNode) =
+    let tryQuerySingle xpath (node : #XmlNode) =
         if (xpath <> null) && (node <> null) then
             let result = 
-                match node with
+                match box node with
                 | :? XmlDocument as document -> node.SelectSingleNode(xpath, (nsmgr document))
-                | n when n.OwnerDocument <> null -> node.SelectSingleNode(xpath, (nsmgr node.OwnerDocument))
+                | :? XmlNode as n when n.OwnerDocument <> null -> node.SelectSingleNode(xpath, (nsmgr node.OwnerDocument))
                 | _ -> node.SelectSingleNode(xpath)
             if result <> null then Some result
             else None
         else None
 
-    let private importNode (document : XmlDocument) (node : XmlNode) =
-        if node.OwnerDocument <> document then document.ImportNode(node, true)
+    let private importNode (document : XmlDocument) (node : 'TNode when 'TNode :> XmlNode) =
+        if node.OwnerDocument <> document then document.ImportNode(node, true) :?> 'TNode
         else node
 
-    let private insertGeneric (node : XmlNode) (newNodes : seq<XmlNode>) (insertOp : XmlNode -> XmlNode -> XmlNode -> XmlNode) =
-        let rec insertRec (node : XmlNode) (newNodes : XmlNode list) appended =
+    let private insertGeneric (node : XmlNode) (newNodes : seq<#XmlNode>) (insertOp : XmlNode -> XmlNode -> XmlNode -> XmlNode) =
+        let rec insertRec (node : XmlNode) (newNodes : #XmlNode list) appended =
             match newNodes with
             | [] -> appended
             | h :: t -> 
@@ -99,7 +99,7 @@ module Xml =
         (insertRec node (List.ofSeq newNodes) []) |> List.rev
 
     /// Inserts the specified XML node after the specified node, returns the inserted node
-    let append (node : XmlNode) (newNode : XmlNode) =
+    let append (node : #XmlNode) (newNode : #XmlNode) =
         Argument.validateNotNull node "node"
         Argument.validateNotNull newNode "newNode"
         let newNode = newNode |> importNode node.OwnerDocument
@@ -107,12 +107,12 @@ module Xml =
         newNode
 
     /// Inserts the specified XML nodes after the specified node, returns the inserted nodes
-    let appendMany (node : XmlNode) (newNodes : seq<XmlNode>) =
-        let insertOp newChild refChild (parentNode : XmlNode) = parentNode.InsertAfter(newChild, refChild)
+    let appendMany (node : #XmlNode) (newNodes : seq<#XmlNode>) =
+        let insertOp newChild refChild (parentNode : #XmlNode) = parentNode.InsertAfter(newChild, refChild)
         insertGeneric node newNodes insertOp
 
     /// Inserts the specified XML node before the specified node, returns the inserted node
-    let prepend (node : XmlNode) (newNode : XmlNode) =
+    let prepend (node : #XmlNode) (newNode : #XmlNode) =
         Argument.validateNotNull node "node"
         Argument.validateNotNull newNode "newNode"
         let newNode = newNode |> importNode node.OwnerDocument
@@ -120,9 +120,9 @@ module Xml =
         newNode
 
     /// Inserts the specified XML nodes before the specified node, returns the inserted nodes
-    let prependMany (node : XmlNode) (newNodes : seq<XmlNode>) =
+    let prependMany (node : #XmlNode) (newNodes : seq<#XmlNode>) =
         Argument.validateNotNull newNodes "newNodes"
-        let insertOp newChild refChild (parentNode : XmlNode) = parentNode.InsertBefore(newChild, refChild)
+        let insertOp newChild refChild (parentNode : #XmlNode) = parentNode.InsertBefore(newChild, refChild)
         (insertGeneric node (newNodes |> List.ofSeq |> List.rev) insertOp) |> List.rev
 
     let private insertChildGeneric (node : XmlNode) (newNode : XmlNode) (insertOp : XmlNode -> XmlNode -> unit) =
@@ -132,8 +132,8 @@ module Xml =
         insertOp node newNode
         newNode
 
-    let private insertChildrenGeneric (node : XmlNode) (newNodes : seq<XmlNode>) (insertOp : XmlNode -> XmlNode -> unit) =
-        let rec insertRec (node : XmlNode) (newNodes : XmlNode list) appended =
+    let private insertChildrenGeneric (node : #XmlNode) (newNodes : seq<#XmlNode>) (insertOp : XmlNode -> XmlNode -> unit) =
+        let rec insertRec (node : XmlNode) (newNodes : #XmlNode list) appended =
             match newNodes with
             | [] -> appended
             | h :: t -> 
@@ -145,26 +145,26 @@ module Xml =
         (insertRec node (List.ofSeq newNodes) []) |> List.rev
 
     /// Inserts the specified XML node as the last child of the specified node, returns the inserted node
-    let appendChild (node : XmlNode) (newNode : XmlNode) =
+    let appendChild (node : #XmlNode) (newNode : #XmlNode) =
         insertChildGeneric node newNode (fun parent newNode -> parent.AppendChild newNode |> ignore)
 
     /// Inserts the specified XML nodes as the last children of the specified node, returns the inserted nodes
-    let appendChildren (node : XmlNode) (newNodes : seq<XmlNode>) =
+    let appendChildren (node : #XmlNode) (newNodes : seq<#XmlNode>) =
         let insertOp (parentNode : XmlNode) (newNode : XmlNode) = parentNode.AppendChild newNode |> ignore
         insertChildrenGeneric node newNodes insertOp
 
     /// Inserts the specified XML node as the first child of the specified node, returns the inserted node
-    let prependChild (node : XmlNode) (newNode : XmlNode) =
+    let prependChild (node : #XmlNode) (newNode : #XmlNode) =
         insertChildGeneric node newNode (fun parent newNode -> parent.PrependChild newNode |> ignore)
 
     /// Inserts the specified XML nodes as the first children of the specified node, returns the inserted nodes
-    let prependChildren (node : XmlNode) (newNodes : seq<XmlNode>) =
+    let prependChildren (node : #XmlNode) (newNodes : seq<#XmlNode>) =
         Argument.validateNotNull newNodes "newNodes"
         let insertOp (parentNode : XmlNode) (newNode : XmlNode) = parentNode.PrependChild newNode |> ignore
         (insertChildrenGeneric node (newNodes |> List.ofSeq |> List.rev) insertOp) |> List.rev
 
     /// Replaces the specified XML node with a new node, returns the inserted node
-    let replace (node : XmlNode) (newNode : XmlNode) =
+    let replace (node : #XmlNode) (newNode : #XmlNode) =
         Argument.validateNotNull node "node"
         Argument.validateNotNull newNode "newNode"
         let parent = node.ParentNode
@@ -173,7 +173,7 @@ module Xml =
         imported
 
     /// Replaces the specified XML node with a list of new nodes, returns the inserted nodes
-    let replaceMany (node : XmlNode) (newNodes : seq<XmlNode>) =
+    let replaceMany (node : #XmlNode) (newNodes : seq<#XmlNode>) =
         Argument.validateNotNull node "node"
         Argument.validateNotNull newNodes "newNodes"
         let inserted = appendMany node newNodes
@@ -181,19 +181,19 @@ module Xml =
         inserted
 
     /// Removes the specified XML node, returns the removed node
-    let remove (node : XmlNode) =
+    let remove (node : #XmlNode) =
         Argument.validateNotNull node "node"
         node.ParentNode.RemoveChild(node) |> ignore
         node
 
     /// Removes the specified XML nodes, returns the removed nodes
-    let removeMany (nodes : seq<XmlNode>) =
+    let removeMany (nodes : seq<#XmlNode>) =
         Argument.validateNotNull nodes "nodes"
         for node in nodes do node.ParentNode.RemoveChild(node) |> ignore
         List.ofSeq nodes
 
     /// Replaces the specified XML element in a document with the element's child elements, returns the moved elements
-    let unwrap (element : XmlElement) = 
+    let unwrap (element : #XmlElement) = 
         let rec unwrapRec (parent : XmlNode) childNodes unwrapped = 
             match childNodes with
             | [] -> unwrapped
@@ -208,7 +208,7 @@ module Xml =
         unwrapped |> List.rev
 
     /// Replaces the specified nodes with a new node which contains the specified nodes, returns the moved nodes
-    let private wrapGeneric (elementName : string) (nodes : seq<XmlNode>) (nodeCtor : XmlNode -> XmlElement) =
+    let private wrapGeneric (elementName : string) (nodes : seq<#XmlNode>) (nodeCtor : XmlNode -> XmlElement) =
         let rec moveNodes nodes (parent : XmlNode) moved =
             match nodes with
             | [] -> moved
@@ -227,10 +227,10 @@ module Xml =
             Some(parent)
 
     /// Replaces the specified nodes with a new node which contains the specified nodes, returns the moved nodes
-    let wrap (elementName : string) (nodes : seq<XmlNode>) =
+    let wrap (elementName : string) (nodes : seq<#XmlNode>) =
         wrapGeneric elementName nodes (fun x -> x.OwnerDocument.CreateElement(elementName))
 
     /// Replaces the specified nodes with a new node which contains the specified nodes, returns the moved nodes
-    let wrapNs (elementName : string) (namespaceUri : string) (nodes : seq<XmlNode>) =
+    let wrapNs (elementName : string) (namespaceUri : string) (nodes : seq<#XmlNode>) =
         Argument.validateNotNull namespaceUri "namespaceUri"
         wrapGeneric elementName nodes (fun x -> x.OwnerDocument.CreateElement(elementName, namespaceUri))

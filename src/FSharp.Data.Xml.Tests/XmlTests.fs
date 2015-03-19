@@ -63,8 +63,7 @@ type XmlTests() =
 
     [<Fact>]
     let ``root should return root node of document``() =
-        let xml = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>"
-        let document = Xml.ofString xml
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let root = Xml.root document
         Assert.Equal(XmlNodeType.Element, root.NodeType)
         Assert.Equal("<root><foo>a</foo><bar>b</bar><baz>c</baz></root>", root.OuterXml)
@@ -76,8 +75,7 @@ type XmlTests() =
 
     [<Fact>]
     let ``tryRoot should return root node of document``() =
-        let xml = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>"
-        let document = Xml.ofString xml
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let root = Xml.tryRoot document
         Assert.Equal(XmlNodeType.Element, root.Value.NodeType)
         Assert.Equal("<root><foo>a</foo><bar>b</bar><baz>c</baz></root>", root.Value.OuterXml)
@@ -101,8 +99,7 @@ type XmlTests() =
 
     [<Fact>]
     let ``query should perform XPath query and return results``() =
-        let xml = xmlDecl + "<root><foo>a</foo><foo>b</foo><foo>c</foo></root>"
-        let document = Xml.ofString xml
+        let document = xmlDecl + "<root><foo>a</foo><foo>b</foo><foo>c</foo></root>" |> Xml.ofString
         let result = document |> Xml.query "/root/foo" |> Array.ofSeq
         Assert.Equal(3, result.Length)
         Assert.Equal("<foo>a</foo>", result.[0].OuterXml)
@@ -117,7 +114,7 @@ type XmlTests() =
                 <y:foo>b</y:foo>
                 <x:foo>c</x:foo>
              </root>"
-        let document = Xml.ofString (xmlDecl + xml)
+        let document = xmlDecl + xml |> Xml.ofString
         let nsmgr = Xml.nsmgr document
         nsmgr.AddNamespace("x", "http://test1")
         nsmgr.AddNamespace("y", "http://test2")
@@ -135,7 +132,7 @@ type XmlTests() =
                 <y:foo>b</y:foo>
                 <x:foo>c</x:foo>
              </root>"
-        let document = Xml.ofString (xmlDecl + xml)
+        let document = xmlDecl + xml |> Xml.ofString
         let nsmgr = Xml.nsmgr document
         nsmgr.AddNamespace("x", "http://test1")
         nsmgr.AddNamespace("y", "http://test2")
@@ -157,15 +154,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``querySingle should perform XPath query and return result``() =
-        let xml = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>"
-        let document = Xml.ofString xml
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let result = document |> Xml.querySingle "/root/bar"
         Assert.Equal("<bar>b</bar>", result.OuterXml)
 
     [<Fact>]
     let ``querySingle should perform XPath query and return first result node``() =
-        let xml = xmlDecl + "<root><foo>a</foo><foo>b</foo><foo>c</foo></root>"
-        let document = Xml.ofString xml
+        let document = xmlDecl + "<root><foo>a</foo><foo>b</foo><foo>c</foo></root>" |> Xml.ofString
         let result = document |> Xml.querySingle "/root/foo"
         Assert.Equal("<foo>a</foo>", result.OuterXml)
         
@@ -177,7 +172,7 @@ type XmlTests() =
                 <y:foo>b</y:foo>
                 <x:foo>c</x:foo>
              </root>"
-        let document = Xml.ofString (xmlDecl + xml)
+        let document = xmlDecl + xml |> Xml.ofString
         let nsmgr = Xml.nsmgr document
         nsmgr.AddNamespace("x", "http://test1")
         nsmgr.AddNamespace("y", "http://test2")
@@ -193,7 +188,7 @@ type XmlTests() =
                 <y:foo>b</y:foo>
                 <x:foo>c</x:foo>
              </root>"
-        let document = Xml.ofString (xmlDecl + xml)
+        let document = xmlDecl + xml |> Xml.ofString
         let nsmgr = Xml.nsmgr document
         nsmgr.AddNamespace("x", "http://test1")
         nsmgr.AddNamespace("y", "http://test2")
@@ -213,22 +208,19 @@ type XmlTests() =
 
     [<Fact>]
     let ``tryQuerySingle should perform XPath query and return result``() =
-        let xml = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>"
-        let document = Xml.ofString xml
+        let document = xmlDecl + "<root><foo>a</foo><bar>b</bar><baz>c</baz></root>" |> Xml.ofString
         let result = document |> Xml.tryQuerySingle "/root/bar"
         Assert.Equal("<bar>b</bar>", result.Value.OuterXml)
 
     [<Fact>]
     let ``tryQuerySingle should perform XPath query and return first result node``() =
-        let xml = xmlDecl + "<root><foo>a</foo><foo>b</foo><foo>c</foo></root>"
-        let document = Xml.ofString xml
+        let document = xmlDecl + "<root><foo>a</foo><foo>b</foo><foo>c</foo></root>" |> Xml.ofString
         let result = document |> Xml.tryQuerySingle "/root/foo"
         Assert.Equal("<foo>a</foo>", result.Value.OuterXml)
 
     [<Fact>]
     let ``tryQuerySingle should return None if no results were returned``() =
-        let xml = xmlDecl + "<root><foo>a</foo><foo>b</foo><foo>c</foo></root>"
-        let document = Xml.ofString xml
+        let document = xmlDecl + "<root><foo>a</foo><foo>b</foo><foo>c</foo></root>" |> Xml.ofString
         let result = document |> Xml.tryQuerySingle "/root/quux"
         Assert.Equal(Option<XmlNode>.None, result)
         
@@ -240,7 +232,7 @@ type XmlTests() =
                 <y:foo>b</y:foo>
                 <x:foo>c</x:foo>
              </root>"
-        let document = Xml.ofString (xmlDecl + xml)
+        let document = xmlDecl + xml |> Xml.ofString
         let nsmgr = Xml.nsmgr document
         nsmgr.AddNamespace("x", "http://test1")
         nsmgr.AddNamespace("y", "http://test2")
@@ -256,7 +248,7 @@ type XmlTests() =
                 <y:foo>b</y:foo>
                 <x:foo>c</x:foo>
              </root>"
-        let document = Xml.ofString (xmlDecl + xml)
+        let document = xmlDecl + xml |> Xml.ofString
         let nsmgr = Xml.nsmgr document
         nsmgr.AddNamespace("x", "http://test1")
         nsmgr.AddNamespace("y", "http://test2")
@@ -265,15 +257,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``append should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNode = Xml.ofString xml |> Xml.root :> XmlNode
+        let newNode = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.append null newNode |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``append should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.append node null |> ignore)
         Assert.Equal("newNode", ex.ParamName)
 
@@ -306,15 +296,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``appendMany should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
+        let newNodes = [| xmlDecl + "<root />" |> Xml.ofString |> Xml.root |]
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendMany null newNodes |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``appendMany should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendMany node null |> ignore)
         Assert.Equal("newNodes", ex.ParamName)
 
@@ -359,15 +347,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``prepend should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNode = Xml.ofString xml |> Xml.root :> XmlNode
+        let newNode = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prepend null newNode |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``prepend should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prepend node null |> ignore)
         Assert.Equal("newNode", ex.ParamName)
 
@@ -400,15 +386,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``prependMany should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
+        let newNodes = [| xmlDecl + "<root />" |> Xml.ofString |> Xml.root |]
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependMany null newNodes |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``prependMany should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependMany node null |> ignore)
         Assert.Equal("newNodes", ex.ParamName)
 
@@ -453,15 +437,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``appendChild should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNode = Xml.ofString xml |> Xml.root :> XmlNode
+        let newNode = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChild null newNode |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``appendChild should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChild node null |> ignore)
         Assert.Equal("newNode", ex.ParamName)
 
@@ -485,15 +467,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``appendChildren should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
+        let newNodes = [| xmlDecl + "<root />" |> Xml.ofString |> Xml.root |]
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChildren null newNodes |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``appendChildren should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.appendChildren node null |> ignore)
         Assert.Equal("newNodes", ex.ParamName)
 
@@ -532,15 +512,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``prependChild should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNode = Xml.ofString xml |> Xml.root :> XmlNode
+        let newNode = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChild null newNode |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``prependChild should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChild node null |> ignore)
         Assert.Equal("newNode", ex.ParamName)
 
@@ -564,15 +542,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``prependChildren should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let newNodes = [| Xml.ofString xml |> Xml.root :> XmlNode |]
+        let newNodes = [| xmlDecl + "<root />" |> Xml.ofString |> Xml.root |]
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChildren null newNodes |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``prependChildren should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.prependChildren node null |> ignore)
         Assert.Equal("newNodes", ex.ParamName)
 
@@ -611,15 +587,13 @@ type XmlTests() =
 
     [<Fact>]
     let ``replace should throw exception when node is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.replace null node |> ignore)
         Assert.Equal("node", ex.ParamName)
 
     [<Fact>]
     let ``replace should throw exception when newNode is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.replace node null |> ignore)
         Assert.Equal("newNode", ex.ParamName)
 
@@ -657,8 +631,7 @@ type XmlTests() =
 
     [<Fact>]
     let ``replaceMany should throw exception when newNodes is null``() =
-        let xml = xmlDecl + "<root />"
-        let node = Xml.ofString xml |> Xml.root :> XmlNode
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.replaceMany node null |> ignore)
         Assert.Equal("newNodes", ex.ParamName)
 
