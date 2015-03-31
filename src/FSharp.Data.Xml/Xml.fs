@@ -267,3 +267,18 @@ module Xml =
         let element = xdoc.CreateElement(qualifiedName, namespaceUri)
         element.InnerText <- text
         element
+
+    /// Creates a new XML attribute
+    let createAttr name value =
+        Argument.validateNotNullOrEmpty name "name"
+        let attribute = xdoc.CreateAttribute(name)
+        attribute.Value <- value
+        attribute
+
+    /// Creates a new XML attribute with the specified XSD namespace
+    let createAttrNs qualifiedName namespaceUri value =
+        Argument.validateNotNullOrEmpty qualifiedName "qualifiedName"
+        Argument.validateNotNullOrEmpty namespaceUri "namespaceUri"
+        let attribute = xdoc.CreateAttribute(qualifiedName, namespaceUri)
+        attribute.Value <- value
+        attribute

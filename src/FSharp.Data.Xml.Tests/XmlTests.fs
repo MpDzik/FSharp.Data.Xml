@@ -937,3 +937,59 @@ type XmlTests() =
         Assert.Equal("foo", elem.Name)
         Assert.Equal("http://dummy", elem.NamespaceURI)
         Assert.Empty(elem.InnerText)
+
+    [<Fact>]
+    let ``createAttr should throw exception when name is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createAttr null "foo" |> ignore)
+        Assert.Equal("name", ex.ParamName)
+
+    [<Fact>]
+    let ``createAttr should throw exception when name is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createAttr "" "foo" |> ignore)
+        Assert.Equal("name", ex.ParamName)
+
+    [<Fact>]
+    let ``createAttr should create attribute with text value``() =
+        let attr = Xml.createAttr "foo" "foo-value"
+        Assert.Equal("foo", attr.Name)
+        Assert.Equal("foo-value", attr.Value)
+
+    [<Fact>]
+    let ``createAttr should create empty attribute``() =
+        let attr = Xml.createAttr "foo" null
+        Assert.Equal("foo", attr.Name)
+        Assert.Empty(attr.InnerXml)
+
+    [<Fact>]
+    let ``createAttrNs should throw exception when name is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createAttrNs null "http://dummy" "foo" |> ignore)
+        Assert.Equal("qualifiedName", ex.ParamName)
+
+    [<Fact>]
+    let ``createAttrNs should throw exception when name is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createAttrNs "" "http://dummy" "foo" |> ignore)
+        Assert.Equal("qualifiedName", ex.ParamName)
+
+    [<Fact>]
+    let ``createAttrNs should throw exception when namespace is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createAttrNs "foo" null "foo" |> ignore)
+        Assert.Equal("namespaceUri", ex.ParamName)
+
+    [<Fact>]
+    let ``createAttrNs should throw exception when namespace is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createAttrNs "foo" "" "foo" |> ignore)
+        Assert.Equal("namespaceUri", ex.ParamName)
+
+    [<Fact>]
+    let ``createAttrNs should create attribute with text value``() =
+        let attr = Xml.createAttrNs "foo" "http://dummy" "foo-value"
+        Assert.Equal("foo", attr.Name)
+        Assert.Equal("http://dummy", attr.NamespaceURI)
+        Assert.Equal("foo-value", attr.Value)
+
+    [<Fact>]
+    let ``createAttrNs should create empty attribute``() =
+        let attr = Xml.createAttrNs "foo" "http://dummy" null
+        Assert.Equal("foo", attr.Name)
+        Assert.Equal("http://dummy", attr.NamespaceURI)
+        Assert.Empty(attr.InnerXml)
