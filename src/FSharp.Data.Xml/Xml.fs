@@ -282,3 +282,8 @@ module Xml =
         let attribute = xdoc.CreateAttribute(qualifiedName, namespaceUri)
         attribute.Value <- value
         attribute
+
+    /// Replaces invalid XML characters in a string with their valid XML equivalent
+    let escape text =
+        if text <> null then System.Security.SecurityElement.Escape(text)
+        else text

@@ -993,3 +993,18 @@ type XmlTests() =
         Assert.Equal("foo", attr.Name)
         Assert.Equal("http://dummy", attr.NamespaceURI)
         Assert.Empty(attr.InnerXml)
+
+    [<Fact>]
+    let ``escape should handle null text``() =
+        Assert.Null(Xml.escape null)
+
+    [<Theory>]
+    [<InlineData("", "")>]
+    [<InlineData("test", "test")>]
+    [<InlineData("te<st", "te&lt;st")>]
+    [<InlineData("te>st", "te&gt;st")>]
+    [<InlineData("te\"st", "te&quot;st")>]
+    [<InlineData("te'st", "te&apos;st")>]
+    [<InlineData("te&st", "te&amp;st")>]
+    let ``escape should escape invalid XML characters``(text, expected) =
+        Assert.Equal(expected, Xml.escape text)
