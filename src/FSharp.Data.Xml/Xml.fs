@@ -8,6 +8,9 @@ module Xml =
 
     /// Caches XmlNamespaceManager objects for XML documents
     let nsMgrs = Dictionary<XmlNameTable, XmlNamespaceManager>()
+    
+    /// XML document instance used for creating XML nodes
+    let xdoc = XmlDocument()
 
     /// Loads an XML document from a stream
     let ofStream (stream : Stream) =
@@ -234,3 +237,33 @@ module Xml =
     let wrapNs (elementName : string) (namespaceUri : string) (nodes : seq<#XmlNode>) =
         Argument.validateNotNull namespaceUri "namespaceUri"
         wrapGeneric elementName nodes (fun x -> x.OwnerDocument.CreateElement(elementName, namespaceUri))
+
+    /// Creates a new XML element
+    let createElem name inner =
+        Argument.validateNotNullOrEmpty name "name"
+        let element = xdoc.CreateElement(name)
+        element.InnerXml <- inner
+        element
+
+    /// Creates a new XML element with a text value
+    let createTextElem name text =
+        Argument.validateNotNullOrEmpty name "name"
+        let element = xdoc.CreateElement(name)
+        element.InnerText <- text
+        element
+
+    /// Creates a new XML element with the specified XSD namespace
+    let createElemNs qualifiedName namespaceUri inner =
+        Argument.validateNotNullOrEmpty qualifiedName "qualifiedName"
+        Argument.validateNotNullOrEmpty namespaceUri "namespaceUri"
+        let element = xdoc.CreateElement(qualifiedName, namespaceUri)
+        element.InnerXml <- inner
+        element
+
+    /// Creates a new XML element with a text value and with the specified XSD namespace
+    let createTextElemNs qualifiedName namespaceUri text =
+        Argument.validateNotNullOrEmpty qualifiedName "qualifiedName"
+        Argument.validateNotNullOrEmpty namespaceUri "namespaceUri"
+        let element = xdoc.CreateElement(qualifiedName, namespaceUri)
+        element.InnerText <- text
+        element

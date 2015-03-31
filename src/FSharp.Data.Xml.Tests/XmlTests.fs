@@ -797,3 +797,143 @@ type XmlTests() =
         Assert.Equal("<x:bar xmlns:x=\"http://dummy\"><baz>c1</baz><baz>c2</baz><baz>c3</baz></x:bar>", result.Value.OuterXml)
         Assert.Equal("<root><foo>a</foo><x:bar xmlns:x=\"http://dummy\"><baz>c1</baz><baz>c2</baz><baz>c3</baz></x:bar><quux>d</quux></root>",
                      (document |> Xml.root).OuterXml)
+
+    [<Fact>]
+    let ``createElem should throw exception when name is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createElem null "foo" |> ignore)
+        Assert.Equal("name", ex.ParamName)
+
+    [<Fact>]
+    let ``createElem should throw exception when name is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createElem "" "foo" |> ignore)
+        Assert.Equal("name", ex.ParamName)
+
+    [<Fact>]
+    let ``createElem should create element with inner text``() =
+        let elem = Xml.createElem "foo" "foo-value"
+        Assert.Equal("foo", elem.Name)
+        Assert.Equal("foo-value", elem.InnerXml)
+
+    [<Fact>]
+    let ``createElem should create element with inner xml``() =
+        let elem = Xml.createElem "foo" "<bar>value</bar>"
+        Assert.Equal("foo", elem.Name)
+        Assert.Equal("<bar>value</bar>", elem.InnerXml)
+
+    [<Fact>]
+    let ``createElem should create empty element``() =
+        let elem = Xml.createElem "foo" null
+        Assert.Equal("foo", elem.Name)
+        Assert.Empty(elem.InnerXml)
+
+    [<Fact>]
+    let ``createTextElem should throw exception when name is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createTextElem null "foo" |> ignore)
+        Assert.Equal("name", ex.ParamName)
+
+    [<Fact>]
+    let ``createTextElem should throw exception when name is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createTextElem "" "foo" |> ignore)
+        Assert.Equal("name", ex.ParamName)
+
+    [<Fact>]
+    let ``createTextElem should create element with inner text``() =
+        let elem = Xml.createTextElem "foo" "foo-value"
+        Assert.Equal("foo", elem.Name)
+        Assert.Equal("foo-value", elem.InnerText)
+
+    [<Fact>]
+    let ``createTextElem should escape inner XML``() =
+        let elem = Xml.createTextElem "foo" "<bar>value</bar>"
+        Assert.Equal("foo", elem.Name)
+        Assert.Equal("<bar>value</bar>", elem.InnerText)
+        Assert.Equal("&lt;bar&gt;value&lt;/bar&gt;", elem.InnerXml)
+
+    [<Fact>]
+    let ``createElem should create empty element``() =
+        let elem = Xml.createElem "foo" null
+        Assert.Equal("foo", elem.Name)
+        Assert.Empty(elem.InnerXml)
+
+    [<Fact>]
+    let ``createElemNs should throw exception when name is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createElemNs null "http://dummy" "foo" |> ignore)
+        Assert.Equal("qualifiedName", ex.ParamName)
+
+    [<Fact>]
+    let ``createElemNs should throw exception when name is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createElemNs "" "http://dummy" "foo" |> ignore)
+        Assert.Equal("qualifiedName", ex.ParamName)
+
+    [<Fact>]
+    let ``createElemNs should throw exception when namespace is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createElemNs "foo" null "foo" |> ignore)
+        Assert.Equal("namespaceUri", ex.ParamName)
+
+    [<Fact>]
+    let ``createElemNs should throw exception when namespace is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createElemNs "foo" "" "foo" |> ignore)
+        Assert.Equal("namespaceUri", ex.ParamName)
+
+    [<Fact>]
+    let ``createElemNs should create element with inner text``() =
+        let elem = Xml.createElemNs "x:foo" "http://dummy" "foo-value"
+        Assert.Equal("x:foo", elem.Name)
+        Assert.Equal("http://dummy", elem.NamespaceURI)
+        Assert.Equal("foo-value", elem.InnerXml)
+
+    [<Fact>]
+    let ``createElemNs should create element with inner xml``() =
+        let elem = Xml.createElemNs "x:foo" "http://dummy" "<bar>value</bar>"
+        Assert.Equal("x:foo", elem.Name)
+        Assert.Equal("http://dummy", elem.NamespaceURI)
+        Assert.Equal("<bar>value</bar>", elem.InnerXml)
+
+    [<Fact>]
+    let ``createElemNs should create empty element``() =
+        let elem = Xml.createElemNs "foo" "http://dummy" null
+        Assert.Equal("foo", elem.Name)
+        Assert.Equal("http://dummy", elem.NamespaceURI)
+        Assert.Empty(elem.InnerXml)
+
+    [<Fact>]
+    let ``createTextElemNs should throw exception when name is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createTextElemNs null "http://dummy" "foo" |> ignore)
+        Assert.Equal("qualifiedName", ex.ParamName)
+
+    [<Fact>]
+    let ``createTextElemNs should throw exception when name is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createTextElemNs "" "http://dummy" "foo" |> ignore)
+        Assert.Equal("qualifiedName", ex.ParamName)
+
+    [<Fact>]
+    let ``createTextElemNs should throw exception when namespace is null``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createTextElemNs "foo" null "foo" |> ignore)
+        Assert.Equal("namespaceUri", ex.ParamName)
+
+    [<Fact>]
+    let ``createTextElemNs should throw exception when namespace is empty``() =
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.createTextElemNs "foo" "" "foo" |> ignore)
+        Assert.Equal("namespaceUri", ex.ParamName)
+
+    [<Fact>]
+    let ``createTextElemNs should create element with inner text``() =
+        let elem = Xml.createTextElemNs "x:foo" "http://dummy" "foo-value"
+        Assert.Equal("x:foo", elem.Name)
+        Assert.Equal("http://dummy", elem.NamespaceURI)
+        Assert.Equal("foo-value", elem.InnerText)
+
+    [<Fact>]
+    let ``createTextElemNs should escape inner XML``() =
+        let elem = Xml.createTextElemNs "x:foo" "http://dummy" "<bar>value</bar>"
+        Assert.Equal("x:foo", elem.Name)
+        Assert.Equal("http://dummy", elem.NamespaceURI)
+        Assert.Equal("<bar>value</bar>", elem.InnerText)
+        Assert.Equal("&lt;bar&gt;value&lt;/bar&gt;", elem.InnerXml)
+
+    [<Fact>]
+    let ``createTextElemNs should create empty element``() =
+        let elem = Xml.createTextElemNs "foo" "http://dummy" null
+        Assert.Equal("foo", elem.Name)
+        Assert.Equal("http://dummy", elem.NamespaceURI)
+        Assert.Empty(elem.InnerText)
