@@ -2,6 +2,7 @@
 
 open System.Collections.Generic
 open System.IO
+open System.Linq
 open System.Xml
 
 module Xml = 
@@ -285,6 +286,22 @@ module Xml =
         let attribute = xdoc.CreateAttribute(qualifiedName, namespaceUri)
         attribute.Value <- value
         attribute
+
+    /// Sets (creates or updates) the specified attribute on an XML node
+    let setAttr name value (element : XmlElement) = 
+        Argument.validateNotNullOrEmpty name "name"
+        Argument.validateNotNull element "element"
+        element.SetAttribute(name, value)
+        element.Attributes.[name]
+
+    /// Sets (creates or updates) the specified attribute with the specified XSD namespace on an XML node
+    let setAttrNs qualifiedName namespaceUri value (element : XmlElement) = 
+        Argument.validateNotNullOrEmpty qualifiedName "qualifiedName"
+        Argument.validateNotNullOrEmpty namespaceUri "namespaceUri"
+        Argument.validateNotNull element "element"
+        let attr = element.OwnerDocument.CreateAttribute(qualifiedName, namespaceUri)
+        attr.Value <- value
+        element.SetAttributeNode(attr)
 
     /// Replaces invalid XML characters in a string with their valid XML equivalent
     let escape text =

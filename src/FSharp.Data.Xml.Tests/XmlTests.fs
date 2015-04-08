@@ -1015,6 +1015,68 @@ type XmlTests() =
         Assert.Empty(attr.InnerXml)
 
     [<Fact>]
+    let ``setAttr should throw exception when name is null``() =
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.setAttr null "bar" node |> ignore)
+        Assert.Equal("name", ex.ParamName)
+
+    [<Fact>]
+    let ``setAttr should throw exception when name is empty``() =
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.setAttr "" "bar" node |> ignore)
+        Assert.Equal("name", ex.ParamName)
+
+    [<Fact>]
+    let ``setAttr should throw exception when element is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.setAttr "foo" "bar" null |> ignore)
+        Assert.Equal("element", ex.ParamName)
+
+    [<Fact>]
+    let ``setAttr should add new attribute``() =
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
+        let result = node |> Xml.setAttr "foo" "bar"
+        Assert.Equal("bar", node.Attributes.["foo"].Value)
+        Assert.Equal(node.Attributes.["foo"], result)
+
+    [<Fact>]
+    let ``setAttr should update existing attribute``() =
+        let node = xmlDecl + "<root foo='baz' />" |> Xml.ofString |> Xml.root
+        let result = node |> Xml.setAttr "foo" "bar"
+        Assert.Equal("bar", node.Attributes.["foo"].Value)
+        Assert.Equal(node.Attributes.["foo"], result)
+
+    [<Fact>]
+    let ``setAttrNs should throw exception when qualified name is null``() =
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.setAttrNs null "http://dummy" "bar" node |> ignore)
+        Assert.Equal("qualifiedName", ex.ParamName)
+
+    [<Fact>]
+    let ``setAttrNs should throw exception when namespace uri is null``() =
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
+        let ex = Assert.Throws<ArgumentException>(fun () -> Xml.setAttrNs "x:foo" null "bar" node |> ignore)
+        Assert.Equal("namespaceUri", ex.ParamName)
+
+    [<Fact>]
+    let ``setAttrNs should throw exception when element is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.setAttrNs "x:foo" "http://dummy" "bar" null |> ignore)
+        Assert.Equal("element", ex.ParamName)
+
+    [<Fact>]
+    let ``setAttrNs should add new attribute``() =
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
+        let result = node |> Xml.setAttrNs "x:foo" "http://dummy" "bar"
+        Assert.Equal("bar", node.Attributes.["x:foo"].Value)
+        Assert.Equal(node.Attributes.["x:foo"], result)
+
+    [<Fact>]
+    let ``setAttrNs should update existing attribute``() =
+        let node = xmlDecl + "<root xmlns:x='http://dummy' foo='x:baz' />" |> Xml.ofString |> Xml.root
+        let result = node |> Xml.setAttrNs "x:foo" "http://dummy" "bar"
+        Assert.Equal("bar", node.Attributes.["x:foo"].Value)
+        Assert.Equal(node.Attributes.["x:foo"], result)
+
+    [<Fact>]
     let ``escape should handle null text``() =
         Assert.Null(Xml.escape null)
 
