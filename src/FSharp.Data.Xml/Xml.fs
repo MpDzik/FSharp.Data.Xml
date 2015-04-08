@@ -86,7 +86,10 @@ module Xml =
             else None
         else None
 
-    let private importNode (document : XmlDocument) (node : 'TNode when 'TNode :> XmlNode) =
+    /// Imports an XML node into the specified document
+    let importNode (document : XmlDocument) (node : #XmlNode) =
+        Argument.validateNotNull document "document"
+        Argument.validateNotNull node "node"
         if node.OwnerDocument <> document then document.ImportNode(node, true) :?> 'TNode
         else node
 

@@ -256,6 +256,26 @@ type XmlTests() =
         Assert.Equal("<y:foo xmlns:y=\"http://test2\">b</y:foo>", result.Value.OuterXml)
 
     [<Fact>]
+    let ``importNode should throw exception when document is null``() =
+        let node = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.importNode null node |> ignore)
+        Assert.Equal("document", ex.ParamName)
+
+    [<Fact>]
+    let ``importNode should throw exception when node is null``() =
+        let document = XmlDocument()
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.importNode document null |> ignore)
+        Assert.Equal("node", ex.ParamName)
+
+    [<Fact>]
+    let ``importNode should import node and subnodes``() =
+        let node = xmlDecl + "<foo><bar>baz</bar></foo>" |> Xml.ofString |> Xml.root
+        let document = XmlDocument()
+        let imported = node |> Xml.importNode document
+        Assert.Equal(document, imported.OwnerDocument)
+        Assert.Equal(document, imported.ChildNodes.[0].OwnerDocument)
+
+    [<Fact>]
     let ``append should throw exception when node is null``() =
         let newNode = xmlDecl + "<root />" |> Xml.ofString |> Xml.root
         let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.append null newNode |> ignore)
