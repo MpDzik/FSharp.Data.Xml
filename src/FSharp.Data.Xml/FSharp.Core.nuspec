@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>FSharp.Core</id>
+    <version>4.3.1.0</version>
+    <title>FSharp.Core</title>
+    <authors>Microsoft</authors>
+    <owners>Proligence</owners>
+    <licenseUrl>https://github.com/MpDzik/FSharp.Data.Xml/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/MpDzik/FSharp.Data.Xml</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>F# Runtime Core Library</description>
+  </metadata>
+  <files>
+    <file src="bin\Release\FSharp.Core.dll" target="lib\net40\" />
+  </files>
+</package>

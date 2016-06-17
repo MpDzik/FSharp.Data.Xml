@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>FSharp.Data.Xml</id>
+    <version>1.1.0.0</version>
+    <title>FSharp.Data.Xml</title>
+    <authors>Marek Dzikiewicz</authors>
+    <owners>Marek Dzikiewicz</owners>
+    <licenseUrl>https://github.com/MpDzik/FSharp.Data.Xml/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/MpDzik/FSharp.Data.Xml</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Library for using XML data in F#</description>
+  </metadata>
+  <files>
+    <file src="bin\Release\FSharp.Data.Xml.dll" target="lib\net45\" />
+  </files>
+</package>
