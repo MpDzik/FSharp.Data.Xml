@@ -40,6 +40,11 @@ module Xml =
         | true, nsmgr -> nsmgr
         | _ -> newNsMgr document.NameTable
 
+    /// Releases the XML namespace manager for the specified XML document
+    let releaseNsmgr (document : XmlDocument) =
+        Argument.validateNotNull document "document"
+        nsMgrs.Remove(document.NameTable) |> ignore
+
     /// Gets the root element of the specified XML document
     let root (document : XmlDocument) =
         Argument.validateNotNull document "document"

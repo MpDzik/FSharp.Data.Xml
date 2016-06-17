@@ -50,6 +50,19 @@ type XmlTests() =
         Assert.Equal(document.NameTable, nsmgr.NameTable)
 
     [<Fact>]
+    let ``releaseNsmgr should throw exception when document is null``() =
+        let ex = Assert.Throws<ArgumentNullException>(fun () -> Xml.releaseNsmgr null |> ignore)
+        Assert.Equal("document", ex.ParamName)
+
+    [<Fact>]
+    let ``releaseNsmgr should remove namespace manager for document``() =
+        let document = XmlDocument()
+        let nsmgr = Xml.nsmgr document
+        Xml.releaseNsmgr document
+        let nsmgr2 = Xml.nsmgr document
+        Assert.NotSame(nsmgr, nsmgr2)
+
+    [<Fact>]
     let ``nsmgr should cache created namespcae managers``() =
         let document = XmlDocument()
         let nsmgr1 = Xml.nsmgr document
