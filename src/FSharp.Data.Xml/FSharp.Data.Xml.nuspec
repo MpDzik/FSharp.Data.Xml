@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>FSharp.Data.Xml</id>
-    <version>1.1.0.0</version>
+    <version>1.2.0.0</version>
     <title>FSharp.Data.Xml</title>
     <authors>Marek Dzikiewicz</authors>
     <owners>Marek Dzikiewicz</owners>
